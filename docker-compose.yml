@@ -1,0 +1,42 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kainaddinov-asset-student-api:v1.0-kainaddinov-asset
+    container_name: kainaddinov-asset-student-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/studentdb
+      SPRING_DATASOURCE_USERNAME: student
+      SPRING_DATASOURCE_PASSWORD: studentpass
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - kainaddinov-asset-network
+
+  db:
+    image: postgres:16
+    container_name: kainaddinov-asset-postgres
+    environment:
+      POSTGRES_DB: studentdb
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: studentpass
+    volumes:
+      - kainaddinov-asset-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U student -d studentdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kainaddinov-asset-network
+
+volumes:
+  kainaddinov-asset-postgres-data:
+
+networks:
+  kainaddinov-asset-network:
+    driver: bridge
